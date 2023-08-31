@@ -1,0 +1,863 @@
+#include <Servo.h>
+#include <IRremote.h>
+void ACTIVATE_MODE(int MODE_FUNC);
+void detachServos();
+void attachServos();
+const int RECV_PIN = A4;
+IRrecv irrecv(RECV_PIN);
+decode_results results;
+unsigned long key_value = 0;
+int MODE = 0;
+int SMOOTHING = 20;
+
+Servo Servos[4][3];
+
+struct LegStage {
+  int INTERVALS[4][3];
+  int PREV[4][3];
+  int STATE[4][3];
+} legstage1, legstage1_5, legstage2, legstage3, legstage3_5, legstage4, legstage4_5, legstage5, legstage6, legstage6_5, legstage_BEFORE, legstage_BEFORE2;
+
+
+
+
+void setup() {
+  Serial.begin(9600);
+  irrecv.enableIRIn();
+
+
+}
+
+void loop() {
+
+  if (irrecv.decode(&results)) {
+    detachServos();
+    irrecv.resume();
+
+    switch (results.value) {
+    case 16753245:
+      MODE = 1;
+      break;
+    case 16769565:
+      MODE = 0;
+      break;
+    case 16748655:
+      MODE = 2;
+      break;
+    case 16769055:
+      MODE = 3;
+      break;
+  }
+
+  ACTIVATE_MODE(MODE);
+
+  }
+
+
+}
+
+
+
+
+
+void ACTIVATE_MODE(int MODE_FUNC) {
+
+  if (MODE_FUNC == 1) {
+    attachServos();
+    for (int i = 0; i < 4; i++) {
+      legstage_BEFORE2.STATE[i][0] = Servos[i][0].read();
+      legstage_BEFORE2.STATE[i][1] = Servos[i][1].read();
+      legstage_BEFORE2.STATE[i][2] = Servos[i][2].read();
+    }
+
+    for (int i = 0; i < 4; i++) {
+      legstage_BEFORE2.INTERVALS[i][0] = (legstage_BEFORE2.STATE[i][0] - 90);
+      legstage_BEFORE2.INTERVALS[i][1] = (legstage_BEFORE2.STATE[i][1] - 128);
+      legstage_BEFORE2.INTERVALS[i][2] = (legstage_BEFORE2.STATE[i][2] - 134);
+    }
+
+    for (int i = SMOOTHING; i > 0; i--) {
+
+      legstage_BEFORE2.PREV[0][0] = legstage_BEFORE2.STATE[0][0] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[0][0]);
+      legstage_BEFORE2.PREV[0][1] = legstage_BEFORE2.STATE[0][1] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[0][1]);
+      legstage_BEFORE2.PREV[0][2] = legstage_BEFORE2.STATE[0][2] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[0][2]);
+      legstage_BEFORE2.PREV[1][0] = legstage_BEFORE2.STATE[1][0] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[1][0]);
+      legstage_BEFORE2.PREV[1][1] = legstage_BEFORE2.STATE[1][1] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[1][1]);
+      legstage_BEFORE2.PREV[1][2] = legstage_BEFORE2.STATE[1][2] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[1][2]);
+      legstage_BEFORE2.PREV[2][0] = legstage_BEFORE2.STATE[2][0] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[2][0]);
+      legstage_BEFORE2.PREV[2][1] = legstage_BEFORE2.STATE[2][1] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[2][1]);
+      legstage_BEFORE2.PREV[2][2] = legstage_BEFORE2.STATE[2][2] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[2][2]);
+      legstage_BEFORE2.PREV[3][0] = legstage_BEFORE2.STATE[3][0] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[3][0]);
+      legstage_BEFORE2.PREV[3][1] = legstage_BEFORE2.STATE[3][1] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[3][1]);
+      legstage_BEFORE2.PREV[3][2] = legstage_BEFORE2.STATE[3][2] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[3][2]);
+
+      Servos[0][0].write(legstage_BEFORE2.PREV[0][0]);
+      Servos[0][1].write(legstage_BEFORE2.PREV[0][1]);
+      Servos[0][2].write(legstage_BEFORE2.PREV[0][2]);
+      Servos[1][0].write(legstage_BEFORE2.PREV[1][0]);
+      Servos[1][1].write(legstage_BEFORE2.PREV[1][1]);
+      Servos[1][2].write(legstage_BEFORE2.PREV[1][2]);
+      Servos[2][0].write(legstage_BEFORE2.PREV[2][0]);
+      Servos[2][1].write(legstage_BEFORE2.PREV[2][1]);
+      Servos[2][2].write(legstage_BEFORE2.PREV[2][2]);
+      Servos[3][0].write(legstage_BEFORE2.PREV[3][0]);
+      Servos[3][1].write(legstage_BEFORE2.PREV[3][1]);
+      Servos[3][2].write(legstage_BEFORE2.PREV[3][2]);
+      delay(10);
+    }
+  } else if (MODE_FUNC == 0) {
+    attachServos();
+    for (int i = 0; i < 4; i++) {
+      legstage_BEFORE2.STATE[i][0] = Servos[i][0].read();
+      legstage_BEFORE2.STATE[i][1] = Servos[i][1].read();
+      legstage_BEFORE2.STATE[i][2] = Servos[i][2].read();
+    }
+
+    for (int i = 0; i < 4; i++) {
+      legstage_BEFORE2.INTERVALS[i][0] = (legstage_BEFORE2.STATE[i][0] - 90);
+      legstage_BEFORE2.INTERVALS[i][1] = (legstage_BEFORE2.STATE[i][1] - 160);
+      legstage_BEFORE2.INTERVALS[i][2] = (legstage_BEFORE2.STATE[i][2] - 140);
+    }
+
+    for (int i = SMOOTHING; i > 0; i--) {
+
+      legstage_BEFORE2.PREV[0][0] = legstage_BEFORE2.STATE[0][0] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[0][0]);
+      legstage_BEFORE2.PREV[0][1] = legstage_BEFORE2.STATE[0][1] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[0][1]);
+      legstage_BEFORE2.PREV[0][2] = legstage_BEFORE2.STATE[0][2] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[0][2]);
+      legstage_BEFORE2.PREV[1][0] = legstage_BEFORE2.STATE[1][0] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[1][0]);
+      legstage_BEFORE2.PREV[1][1] = legstage_BEFORE2.STATE[1][1] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[1][1]);
+      legstage_BEFORE2.PREV[1][2] = legstage_BEFORE2.STATE[1][2] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[1][2]);
+      legstage_BEFORE2.PREV[2][0] = legstage_BEFORE2.STATE[2][0] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[2][0]);
+      legstage_BEFORE2.PREV[2][1] = legstage_BEFORE2.STATE[2][1] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[2][1]);
+      legstage_BEFORE2.PREV[2][2] = legstage_BEFORE2.STATE[2][2] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[2][2]);
+      legstage_BEFORE2.PREV[3][0] = legstage_BEFORE2.STATE[3][0] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[3][0]);
+      legstage_BEFORE2.PREV[3][1] = legstage_BEFORE2.STATE[3][1] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[3][1]);
+      legstage_BEFORE2.PREV[3][2] = legstage_BEFORE2.STATE[3][2] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[3][2]);
+
+      Servos[0][0].write(legstage_BEFORE2.PREV[0][0]);
+      Servos[0][1].write(legstage_BEFORE2.PREV[0][1]);
+      Servos[0][2].write(legstage_BEFORE2.PREV[0][2]);
+      Servos[1][0].write(legstage_BEFORE2.PREV[1][0]);
+      Servos[1][1].write(legstage_BEFORE2.PREV[1][1]);
+      Servos[1][2].write(legstage_BEFORE2.PREV[1][2]);
+      Servos[2][0].write(legstage_BEFORE2.PREV[2][0]);
+      Servos[2][1].write(legstage_BEFORE2.PREV[2][1]);
+      Servos[2][2].write(legstage_BEFORE2.PREV[2][2]);
+      Servos[3][0].write(legstage_BEFORE2.PREV[3][0]);
+      Servos[3][1].write(legstage_BEFORE2.PREV[3][1]);
+      Servos[3][2].write(legstage_BEFORE2.PREV[3][2]);
+      delay(10);
+    }
+
+  }
+   else if (MODE_FUNC == 2) {
+    attachServos();
+    for (int i = 0; i < 4; i++) {
+      legstage_BEFORE2.STATE[i][0] = Servos[i][0].read();
+      legstage_BEFORE2.STATE[i][1] = Servos[i][1].read();
+      legstage_BEFORE2.STATE[i][2] = Servos[i][2].read();
+    }
+
+    legstage_BEFORE2.INTERVALS[0][0] = (legstage_BEFORE2.STATE[0][0] - 63);
+    legstage_BEFORE2.INTERVALS[0][1] = (legstage_BEFORE2.STATE[0][1] - 120);
+    legstage_BEFORE2.INTERVALS[0][2] = (legstage_BEFORE2.STATE[0][2] - 125);
+    legstage_BEFORE2.INTERVALS[3][0] = (legstage_BEFORE2.STATE[3][0] - 117);
+    legstage_BEFORE2.INTERVALS[3][1] = (legstage_BEFORE2.STATE[3][1] - 120);
+    legstage_BEFORE2.INTERVALS[3][2] = (legstage_BEFORE2.STATE[3][2] - 125);
+
+
+    for (int i = SMOOTHING; i > 0; i--) {
+
+      legstage_BEFORE2.PREV[0][0] = legstage_BEFORE2.STATE[0][0] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[0][0]);
+      legstage_BEFORE2.PREV[0][1] = legstage_BEFORE2.STATE[0][1] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[0][1]);
+      legstage_BEFORE2.PREV[0][2] = legstage_BEFORE2.STATE[0][2] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[0][2]);
+
+      legstage_BEFORE2.PREV[3][0] = legstage_BEFORE2.STATE[3][0] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[3][0]);
+      legstage_BEFORE2.PREV[3][1] = legstage_BEFORE2.STATE[3][1] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[3][1]);
+      legstage_BEFORE2.PREV[3][2] = legstage_BEFORE2.STATE[3][2] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[3][2]);
+
+
+      Servos[3][0].write(legstage_BEFORE2.PREV[3][0]);
+      Servos[3][1].write(legstage_BEFORE2.PREV[3][1]);
+      Servos[3][2].write(legstage_BEFORE2.PREV[3][2]);
+      Servos[0][0].write(legstage_BEFORE2.PREV[0][0]);
+      Servos[0][1].write(legstage_BEFORE2.PREV[0][1]);
+      Servos[0][2].write(legstage_BEFORE2.PREV[0][2]);
+      delay(10);
+    }
+
+    for (int i = 0; i < 4; i++) {
+      legstage1.STATE[i][0] = Servos[i][0].read();
+      legstage1.STATE[i][1] = Servos[i][1].read();
+      legstage1.STATE[i][2] = Servos[i][2].read();
+    }
+
+    legstage1.INTERVALS[1][0] = (legstage1.STATE[1][0] - 117);
+    legstage1.INTERVALS[1][1] = (legstage1.STATE[1][1] - 180);
+    legstage1.INTERVALS[1][2] = (legstage1.STATE[1][2] - 90);
+    
+
+    for (int i = SMOOTHING; i > 0; i--) {
+
+      legstage1.PREV[1][0] = legstage1.STATE[1][0] - ((1.0 / i) * legstage1.INTERVALS[1][0]);
+      legstage1.PREV[1][1] = legstage1.STATE[1][1] - ((1.0 / i) * legstage1.INTERVALS[1][1]);
+      legstage1.PREV[1][2] = legstage1.STATE[1][2] - ((1.0 / i) * legstage1.INTERVALS[1][2]);
+
+
+
+
+      Servos[1][0].write(legstage1.PREV[1][0]);
+      Servos[1][1].write(legstage1.PREV[1][1]);
+      Servos[1][2].write(legstage1.PREV[1][2]);
+      delay(10);
+    }
+
+    for (int i = 0; i < 4; i++) {
+      legstage1_5.STATE[i][0] = Servos[i][0].read();
+      legstage1_5.STATE[i][1] = Servos[i][1].read();
+      legstage1_5.STATE[i][2] = Servos[i][2].read();
+    }
+
+    legstage1_5.INTERVALS[1][0] = (legstage1_5.STATE[1][0] - 141);
+    legstage1_5.INTERVALS[1][1] = (legstage1_5.STATE[1][1] - 110);
+    legstage1_5.INTERVALS[1][2] = (legstage1_5.STATE[1][2] - 135);
+
+
+        for (int i = SMOOTHING; i > 0; i--) {
+
+      legstage1_5.PREV[1][0] = legstage1_5.STATE[1][0] - ((1.0 / i) * legstage1_5.INTERVALS[1][0]);
+      legstage1_5.PREV[1][1] = legstage1_5.STATE[1][1] - ((1.0 / i) * legstage1_5.INTERVALS[1][1]);
+      legstage1_5.PREV[1][2] = legstage1_5.STATE[1][2] - ((1.0 / i) * legstage1_5.INTERVALS[1][2]);
+
+
+
+
+      Servos[1][0].write(legstage1_5.PREV[1][0]);
+      Servos[1][1].write(legstage1_5.PREV[1][1]);
+      Servos[1][2].write(legstage1_5.PREV[1][2]);
+      delay(10);
+    }
+
+  
+ 
+      for (int i = 0; i < 4; i++) {
+      legstage2.STATE[i][0] = Servos[i][0].read();
+      legstage2.STATE[i][1] = Servos[i][1].read();
+      legstage2.STATE[i][2] = Servos[i][2].read();
+    }
+
+    legstage2.INTERVALS[0][0] = (legstage2.STATE[0][0] - 90);
+    legstage2.INTERVALS[0][1] = (legstage2.STATE[0][1] - 128);
+    legstage2.INTERVALS[0][2] = (legstage2.STATE[0][2] - 134);
+    legstage2.INTERVALS[1][0] = (legstage2.STATE[1][0] - 117);
+    legstage2.INTERVALS[1][1] = (legstage2.STATE[1][1] - 128);
+    legstage2.INTERVALS[1][2] = (legstage2.STATE[1][2] - 125);
+    legstage2.INTERVALS[2][0] = (legstage2.STATE[2][0] - 63);
+    legstage2.INTERVALS[2][1] = (legstage2.STATE[2][1] - 120);
+    legstage2.INTERVALS[2][2] = (legstage2.STATE[2][2] - 125);
+    legstage2.INTERVALS[3][0] = (legstage2.STATE[3][0] - 141);
+    legstage2.INTERVALS[3][1] = (legstage2.STATE[3][1] - 110);
+    legstage2.INTERVALS[3][2] = (legstage2.STATE[3][2] - 115);
+
+    for (int i = SMOOTHING; i > 0; i--) {
+
+      legstage2.PREV[0][0] = legstage2.STATE[0][0] - ((1.0 / i) * legstage2.INTERVALS[0][0]);
+      legstage2.PREV[0][1] = legstage2.STATE[0][1] - ((1.0 / i) * legstage2.INTERVALS[0][1]);
+      legstage2.PREV[0][2] = legstage2.STATE[0][2] - ((1.0 / i) * legstage2.INTERVALS[0][2]);
+      legstage2.PREV[1][0] = legstage2.STATE[1][0] - ((1.0 / i) * legstage2.INTERVALS[1][0]);
+      legstage2.PREV[1][1] = legstage2.STATE[1][1] - ((1.0 / i) * legstage2.INTERVALS[1][1]);
+      legstage2.PREV[1][2] = legstage2.STATE[1][2] - ((1.0 / i) * legstage2.INTERVALS[1][2]);
+      legstage2.PREV[2][0] = legstage2.STATE[2][0] - ((1.0 / i) * legstage2.INTERVALS[2][0]);
+      legstage2.PREV[2][1] = legstage2.STATE[2][1] - ((1.0 / i) * legstage2.INTERVALS[2][1]);
+      legstage2.PREV[2][2] = legstage2.STATE[2][2] - ((1.0 / i) * legstage2.INTERVALS[2][2]);
+      legstage2.PREV[3][0] = legstage2.STATE[3][0] - ((1.0 / i) * legstage2.INTERVALS[3][0]);
+      legstage2.PREV[3][1] = legstage2.STATE[3][1] - ((1.0 / i) * legstage2.INTERVALS[3][1]);
+      legstage2.PREV[3][2] = legstage2.STATE[3][2] - ((1.0 / i) * legstage2.INTERVALS[3][2]);
+
+      Servos[0][0].write(legstage2.PREV[0][0]);
+      Servos[0][1].write(legstage2.PREV[0][1]);
+      Servos[0][2].write(legstage2.PREV[0][2]);
+      Servos[1][0].write(legstage2.PREV[1][0]);
+      Servos[1][1].write(legstage2.PREV[1][1]);
+      Servos[1][2].write(legstage2.PREV[1][2]);
+      Servos[2][0].write(legstage2.PREV[2][0]);
+      Servos[2][1].write(legstage2.PREV[2][1]);
+      Servos[2][2].write(legstage2.PREV[2][2]);
+      Servos[3][0].write(legstage2.PREV[3][0]);
+      Servos[3][1].write(legstage2.PREV[3][1]);
+      Servos[3][2].write(legstage2.PREV[3][2]);
+      delay(10);
+    }
+
+    
+  for (int i = 0; i < 4; i++) {
+      legstage3.STATE[i][0] = Servos[i][0].read();
+      legstage3.STATE[i][1] = Servos[i][1].read();
+      legstage3.STATE[i][2] = Servos[i][2].read();
+    }
+
+
+    legstage3.INTERVALS[3][0] = (legstage3.STATE[3][0] - 117);
+    legstage3.INTERVALS[3][1] = (legstage3.STATE[3][1] - 180);
+    legstage3.INTERVALS[3][2] = (legstage3.STATE[3][2] - 90);
+
+
+        for (int i = SMOOTHING; i > 0; i--) {
+
+
+      legstage3.PREV[3][0] = legstage3.STATE[3][0] - ((1.0 / i) * legstage3.INTERVALS[3][0]);
+      legstage3.PREV[3][1] = legstage3.STATE[3][1] - ((1.0 / i) * legstage3.INTERVALS[3][1]);
+      legstage3.PREV[3][2] = legstage3.STATE[3][2] - ((1.0 / i) * legstage3.INTERVALS[3][2]);
+
+    
+      Servos[3][0].write(legstage3.PREV[3][0]);
+      Servos[3][1].write(legstage3.PREV[3][1]);
+      Servos[3][2].write(legstage3.PREV[3][2]);
+      delay(10);
+    }
+
+      for (int i = 0; i < 4; i++) {
+      legstage3_5.STATE[i][0] = Servos[i][0].read();
+      legstage3_5.STATE[i][1] = Servos[i][1].read();
+      legstage3_5.STATE[i][2] = Servos[i][2].read();
+    }
+
+    legstage3_5.INTERVALS[3][0] = (legstage3_5.STATE[3][0] - 90);
+    legstage3_5.INTERVALS[3][1] = (legstage3_5.STATE[3][1] - 128);
+    legstage3_5.INTERVALS[3][2] = (legstage3_5.STATE[3][2] - 134);
+
+    
+        for (int i = SMOOTHING; i > 0; i--) {
+
+
+      legstage3_5.PREV[3][0] = legstage3_5.STATE[3][0] - ((1.0 / i) * legstage3_5.INTERVALS[3][0]);
+      legstage3_5.PREV[3][1] = legstage3_5.STATE[3][1] - ((1.0 / i) * legstage3_5.INTERVALS[3][1]);
+      legstage3_5.PREV[3][2] = legstage3_5.STATE[3][2] - ((1.0 / i) * legstage3_5.INTERVALS[3][2]);
+
+    
+      Servos[3][0].write(legstage3_5.PREV[3][0]);
+      Servos[3][1].write(legstage3_5.PREV[3][1]);
+      Servos[3][2].write(legstage3_5.PREV[3][2]);
+      delay(10);
+    }
+    
+
+
+          for (int i = 0; i < 4; i++) {
+      legstage4.STATE[i][0] = Servos[i][0].read();
+      legstage4.STATE[i][1] = Servos[i][1].read();
+      legstage4.STATE[i][2] = Servos[i][2].read();
+    }
+
+    legstage4.INTERVALS[0][0] = (legstage4.STATE[3][0] - 63);
+    legstage4.INTERVALS[0][1] = (legstage4.STATE[3][1] - 180);
+    legstage4.INTERVALS[0][2] = (legstage4.STATE[3][2] - 90);
+
+    
+        for (int i = SMOOTHING; i > 0; i--) {
+
+
+      legstage4.PREV[0][0] = legstage4.STATE[0][0] - ((1.0 / i) * legstage4.INTERVALS[0][0]);
+      legstage4.PREV[0][1] = legstage4.STATE[0][1] - ((1.0 / i) * legstage4.INTERVALS[0][1]);
+      legstage4.PREV[0][2] = legstage4.STATE[0][2] - ((1.0 / i) * legstage4.INTERVALS[0][2]);
+
+    
+      Servos[0][0].write(legstage4.PREV[0][0]);
+      Servos[0][1].write(legstage4.PREV[0][1]);
+      Servos[0][2].write(legstage4.PREV[0][2]);
+      delay(10);
+    }
+
+         for (int i = 0; i < 4; i++) {
+      legstage4_5.STATE[i][0] = Servos[i][0].read();
+      legstage4_5.STATE[i][1] = Servos[i][1].read();
+      legstage4_5.STATE[i][2] = Servos[i][2].read();
+    }
+
+    legstage4_5.INTERVALS[0][0] = (legstage4_5.STATE[0][0] - 39);
+    legstage4_5.INTERVALS[0][1] = (legstage4_5.STATE[0][1] - 110);
+    legstage4_5.INTERVALS[0][2] = (legstage4_5.STATE[0][2] - 135);
+
+    
+        for (int i = SMOOTHING; i > 0; i--) {
+
+
+      legstage4_5.PREV[0][0] = legstage4_5.STATE[0][0] - ((1.0 / i) * legstage4_5.INTERVALS[0][0]);
+      legstage4_5.PREV[0][1] = legstage4_5.STATE[0][1] - ((1.0 / i) * legstage4_5.INTERVALS[0][1]);
+      legstage4_5.PREV[0][2] = legstage4_5.STATE[0][2] - ((1.0 / i) * legstage4_5.INTERVALS[0][2]);
+
+    
+      Servos[0][0].write(legstage4_5.PREV[0][0]);
+      Servos[0][1].write(legstage4_5.PREV[0][1]);
+      Servos[0][2].write(legstage4_5.PREV[0][2]);
+      delay(10);
+    }
+
+ 
+
+          for (int i = 0; i < 4; i++) {
+      legstage5.STATE[i][0] = Servos[i][0].read();
+      legstage5.STATE[i][1] = Servos[i][1].read();
+      legstage5.STATE[i][2] = Servos[i][2].read();
+    }
+
+    legstage5.INTERVALS[0][0] = (legstage5.STATE[0][0] - 63);
+    legstage5.INTERVALS[0][1] = (legstage5.STATE[0][1] - 120);
+    legstage5.INTERVALS[0][2] = (legstage5.STATE[0][2] - 125);
+    legstage5.INTERVALS[1][0] = (legstage5.STATE[1][0] - 90);
+    legstage5.INTERVALS[1][1] = (legstage5.STATE[1][1] - 128);
+    legstage5.INTERVALS[1][2] = (legstage5.STATE[1][2] - 134);
+    legstage5.INTERVALS[2][0] = (legstage5.STATE[2][0] - 39);
+    legstage5.INTERVALS[2][1] = (legstage5.STATE[2][1] - 110);
+    legstage5.INTERVALS[2][2] = (legstage5.STATE[2][2] - 135);
+    legstage5.INTERVALS[3][0] = (legstage5.STATE[3][0] - 117);
+    legstage5.INTERVALS[3][1] = (legstage5.STATE[3][1] - 120);
+    legstage5.INTERVALS[3][2] = (legstage5.STATE[3][2] - 125);
+
+    for (int i = SMOOTHING; i > 0; i--) {
+
+      legstage5.PREV[0][0] = legstage5.STATE[0][0] - ((1.0 / i) * legstage5.INTERVALS[0][0]);
+      legstage5.PREV[0][1] = legstage5.STATE[0][1] - ((1.0 / i) * legstage5.INTERVALS[0][1]);
+      legstage5.PREV[0][2] = legstage5.STATE[0][2] - ((1.0 / i) * legstage5.INTERVALS[0][2]);
+      legstage5.PREV[1][0] = legstage5.STATE[1][0] - ((1.0 / i) * legstage5.INTERVALS[1][0]);
+      legstage5.PREV[1][1] = legstage5.STATE[1][1] - ((1.0 / i) * legstage5.INTERVALS[1][1]);
+      legstage5.PREV[1][2] = legstage5.STATE[1][2] - ((1.0 / i) * legstage5.INTERVALS[1][2]);
+      legstage5.PREV[2][0] = legstage5.STATE[2][0] - ((1.0 / i) * legstage5.INTERVALS[2][0]);
+      legstage5.PREV[2][1] = legstage5.STATE[2][1] - ((1.0 / i) * legstage5.INTERVALS[2][1]);
+      legstage5.PREV[2][2] = legstage5.STATE[2][2] - ((1.0 / i) * legstage5.INTERVALS[2][2]);
+      legstage5.PREV[3][0] = legstage5.STATE[3][0] - ((1.0 / i) * legstage5.INTERVALS[3][0]);
+      legstage5.PREV[3][1] = legstage5.STATE[3][1] - ((1.0 / i) * legstage5.INTERVALS[3][1]);
+      legstage5.PREV[3][2] = legstage5.STATE[3][2] - ((1.0 / i) * legstage5.INTERVALS[3][2]);
+
+      Servos[0][0].write(legstage5.PREV[0][0]);
+      Servos[0][1].write(legstage5.PREV[0][1]);
+      Servos[0][2].write(legstage5.PREV[0][2]);
+      Servos[1][0].write(legstage5.PREV[1][0]);
+      Servos[1][1].write(legstage5.PREV[1][1]);
+      Servos[1][2].write(legstage5.PREV[1][2]);
+      Servos[2][0].write(legstage5.PREV[2][0]);
+      Servos[2][1].write(legstage5.PREV[2][1]);
+      Servos[2][2].write(legstage5.PREV[2][2]);
+      Servos[3][0].write(legstage5.PREV[3][0]);
+      Servos[3][1].write(legstage5.PREV[3][1]);
+      Servos[3][2].write(legstage5.PREV[3][2]);
+      delay(10);
+    }
+
+
+   for (int i = 0; i < 4; i++) {
+      legstage6.STATE[i][0] = Servos[i][0].read();
+      legstage6.STATE[i][1] = Servos[i][1].read();
+      legstage6.STATE[i][2] = Servos[i][2].read();
+    }
+
+    legstage6.INTERVALS[2][0] = (legstage6.STATE[2][0] - 104);
+    legstage6.INTERVALS[2][1] = (legstage6.STATE[2][1] - 180);
+    legstage6.INTERVALS[2][2] = (legstage6.STATE[2][2] - 90);
+
+    
+        for (int i = SMOOTHING; i > 0; i--) {
+
+
+      legstage6.PREV[2][0] = legstage6.STATE[2][0] - ((1.0 / i) * legstage6.INTERVALS[2][0]);
+      legstage6.PREV[2][1] = legstage6.STATE[2][1] - ((1.0 / i) * legstage6.INTERVALS[2][1]);
+      legstage6.PREV[2][2] = legstage6.STATE[2][2] - ((1.0 / i) * legstage6.INTERVALS[2][2]);
+
+    
+      Servos[2][0].write(legstage6.PREV[2][0]);
+      Servos[2][1].write(legstage6.PREV[2][1]);
+      Servos[2][2].write(legstage6.PREV[2][2]);
+      delay(10);
+    }
+
+
+     for (int i = 0; i < 4; i++) {
+      legstage6_5.STATE[i][0] = Servos[i][0].read();
+      legstage6_5.STATE[i][1] = Servos[i][1].read();
+      legstage6_5.STATE[i][2] = Servos[i][2].read();
+    }
+
+    legstage6_5.INTERVALS[2][0] = (legstage6_5.STATE[2][0] - 90);
+    legstage6_5.INTERVALS[2][1] = (legstage6_5.STATE[2][1] - 128);
+    legstage6_5.INTERVALS[2][2] = (legstage6_5.STATE[2][2] - 134);
+
+    
+        for (int i = SMOOTHING; i > 0; i--) {
+
+
+      legstage6_5.PREV[2][0] = legstage6_5.STATE[2][0] - ((1.0 / i) * legstage6_5.INTERVALS[2][0]);
+      legstage6_5.PREV[2][1] = legstage6_5.STATE[2][1] - ((1.0 / i) * legstage6_5.INTERVALS[2][1]);
+      legstage6_5.PREV[2][2] = legstage6_5.STATE[2][2] - ((1.0 / i) * legstage6_5.INTERVALS[2][2]);
+
+    
+      Servos[2][0].write(legstage6_5.PREV[2][0]);
+      Servos[2][1].write(legstage6_5.PREV[2][1]);
+      Servos[2][2].write(legstage6_5.PREV[2][2]);
+      delay(10);
+    }
+
+
+  }
+  else if(MODE_FUNC == 3){
+    attachServos();
+        for (int i = 0; i < 4; i++) {
+      legstage_BEFORE2.STATE[i][0] = Servos[i][0].read();
+      legstage_BEFORE2.STATE[i][1] = Servos[i][1].read();
+      legstage_BEFORE2.STATE[i][2] = Servos[i][2].read();
+    }
+
+    legstage_BEFORE2.INTERVALS[0][0] = (legstage_BEFORE2.STATE[0][0] - 90);
+    legstage_BEFORE2.INTERVALS[0][1] = (legstage_BEFORE2.STATE[0][1] - 128);
+    legstage_BEFORE2.INTERVALS[0][2] = (legstage_BEFORE2.STATE[0][2] - 134);
+    legstage_BEFORE2.INTERVALS[1][0] = (legstage_BEFORE2.STATE[1][0] - 110);
+    legstage_BEFORE2.INTERVALS[1][1] = (legstage_BEFORE2.STATE[1][1] - 128);
+    legstage_BEFORE2.INTERVALS[1][2] = (legstage_BEFORE2.STATE[1][2] - 134);
+    legstage_BEFORE2.INTERVALS[2][0] = (legstage_BEFORE2.STATE[2][0] - 50);
+    legstage_BEFORE2.INTERVALS[2][1] = (legstage_BEFORE2.STATE[2][1] - 128);
+    legstage_BEFORE2.INTERVALS[2][2] = (legstage_BEFORE2.STATE[2][2] - 134);
+    legstage_BEFORE2.INTERVALS[3][0] = (legstage_BEFORE2.STATE[3][0] - 39);
+    legstage_BEFORE2.INTERVALS[3][1] = (legstage_BEFORE2.STATE[3][1] - 128);
+    legstage_BEFORE2.INTERVALS[3][2] = (legstage_BEFORE2.STATE[3][2] - 134);
+    
+    
+
+     for (int i = SMOOTHING; i > 0; i--) {
+
+      legstage_BEFORE2.PREV[0][0] = legstage_BEFORE2.STATE[0][0] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[0][0]);
+      legstage_BEFORE2.PREV[0][1] = legstage_BEFORE2.STATE[0][1] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[0][1]);
+      legstage_BEFORE2.PREV[0][2] = legstage_BEFORE2.STATE[0][2] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[0][2]);
+      legstage_BEFORE2.PREV[1][0] = legstage_BEFORE2.STATE[1][0] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[1][0]);
+      legstage_BEFORE2.PREV[1][1] = legstage_BEFORE2.STATE[1][1] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[1][1]);
+      legstage_BEFORE2.PREV[1][2] = legstage_BEFORE2.STATE[1][2] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[1][2]);
+      legstage_BEFORE2.PREV[2][0] = legstage_BEFORE2.STATE[2][0] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[2][0]);
+      legstage_BEFORE2.PREV[2][1] = legstage_BEFORE2.STATE[2][1] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[2][1]);
+      legstage_BEFORE2.PREV[2][2] = legstage_BEFORE2.STATE[2][2] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[2][2]);
+            legstage_BEFORE2.PREV[3][0] = legstage_BEFORE2.STATE[3][0] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[3][0]);
+      legstage_BEFORE2.PREV[3][1] = legstage_BEFORE2.STATE[3][1] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[3][1]);
+      legstage_BEFORE2.PREV[3][2] = legstage_BEFORE2.STATE[3][2] - ((1.0 / i) * legstage_BEFORE2.INTERVALS[3][2]);
+      Servos[0][0].write(legstage_BEFORE2.PREV[0][0]);
+      Servos[0][1].write(legstage_BEFORE2.PREV[0][1]);
+      Servos[0][2].write(legstage_BEFORE2.PREV[0][2]);
+      Servos[1][0].write(legstage_BEFORE2.PREV[1][0]);
+      Servos[1][1].write(legstage_BEFORE2.PREV[1][1]);
+      Servos[1][2].write(legstage_BEFORE2.PREV[1][2]);
+      Servos[2][0].write(legstage_BEFORE2.PREV[2][0]);
+      Servos[2][1].write(legstage_BEFORE2.PREV[2][1]);
+      Servos[2][2].write(legstage_BEFORE2.PREV[2][2]);
+      Servos[3][0].write(legstage_BEFORE2.PREV[3][0]);
+      Servos[3][1].write(legstage_BEFORE2.PREV[3][1]);
+      Servos[3][2].write(legstage_BEFORE2.PREV[3][2]);
+   
+   
+      delay(10);
+    }
+
+
+            for (int i = 0; i < 4; i++) {
+      legstage1.STATE[i][0] = Servos[i][0].read();
+      legstage1.STATE[i][1] = Servos[i][1].read();
+      legstage1.STATE[i][2] = Servos[i][2].read();
+    }
+
+      legstage1.INTERVALS[0][0] = (legstage1.STATE[0][0] - 60);
+    legstage1.INTERVALS[0][1] = (legstage1.STATE[0][1] - 180);
+    legstage1.INTERVALS[0][2] = (legstage1.STATE[0][2] - 90);
+
+    
+
+     for (int i = SMOOTHING; i > 0; i--) {
+
+      legstage1.PREV[0][0] = legstage1.STATE[0][0] - ((1.0 / i) * legstage1.INTERVALS[0][0]);
+      legstage1.PREV[0][1] = legstage1.STATE[0][1] - ((1.0 / i) * legstage1.INTERVALS[0][1]);
+      legstage1.PREV[0][2] = legstage1.STATE[0][2] - ((1.0 / i) * legstage1.INTERVALS[0][2]);
+
+      Servos[0][0].write(legstage1.PREV[0][0]);
+      Servos[0][1].write(legstage1.PREV[0][1]);
+      Servos[0][2].write(legstage1.PREV[0][2]);
+
+   
+      delay(10);
+    }
+ 
+                for (int i = 0; i < 4; i++) {
+      legstage1_5.STATE[i][0] = Servos[i][0].read();
+      legstage1_5.STATE[i][1] = Servos[i][1].read();
+      legstage1_5.STATE[i][2] = Servos[i][2].read();
+    }
+
+      legstage1_5.INTERVALS[0][0] = (legstage1_5.STATE[0][0] - 39);
+    legstage1_5.INTERVALS[0][1] = (legstage1_5.STATE[0][1] - 128);
+    legstage1_5.INTERVALS[0][2] = (legstage1_5.STATE[0][2] - 134);
+        legstage1_5.INTERVALS[1][0] = (legstage1_5.STATE[1][0] - 90);
+    legstage1_5.INTERVALS[1][1] = (legstage1_5.STATE[1][1] - 128);
+    legstage1_5.INTERVALS[1][2] = (legstage1_5.STATE[1][2] - 134);
+    legstage1_5.INTERVALS[2][0] = (legstage1_5.STATE[2][0] - 70);
+    legstage1_5.INTERVALS[2][1] = (legstage1_5.STATE[2][1] - 128);
+    legstage1_5.INTERVALS[2][2] = (legstage1_5.STATE[2][2] - 134);
+    legstage1_5.INTERVALS[3][0] = (legstage1_5.STATE[3][0] - 50);
+    legstage1_5.INTERVALS[3][1] = (legstage1_5.STATE[3][1] - 128);
+    legstage1_5.INTERVALS[3][2] = (legstage1_5.STATE[3][2] - 134);
+
+    
+
+     for (int i = SMOOTHING; i > 0; i--) {
+      legstage1_5.PREV[0][0] = legstage1_5.STATE[0][0] - ((1.0 / i) * legstage1_5.INTERVALS[0][0]);
+      legstage1_5.PREV[0][1] = legstage1_5.STATE[0][1] - ((1.0 / i) * legstage1_5.INTERVALS[0][1]);
+      legstage1_5.PREV[0][2] = legstage1_5.STATE[0][2] - ((1.0 / i) * legstage1_5.INTERVALS[0][2]);
+      legstage1_5.PREV[1][0] = legstage1_5.STATE[1][0] - ((1.0 / i) * legstage1_5.INTERVALS[1][0]);
+      legstage1_5.PREV[1][1] = legstage1_5.STATE[1][1] - ((1.0 / i) * legstage1_5.INTERVALS[1][1]);
+      legstage1_5.PREV[1][2] = legstage1_5.STATE[1][2] - ((1.0 / i) * legstage1_5.INTERVALS[1][2]);
+      legstage1_5.PREV[2][0] = legstage1_5.STATE[2][0] - ((1.0 / i) * legstage1_5.INTERVALS[2][0]);
+      legstage1_5.PREV[2][1] = legstage1_5.STATE[2][1] - ((1.0 / i) * legstage1_5.INTERVALS[2][1]);
+      legstage1_5.PREV[2][2] = legstage1_5.STATE[2][2] - ((1.0 / i) * legstage1_5.INTERVALS[2][2]);
+            legstage1_5.PREV[3][0] = legstage1_5.STATE[3][0] - ((1.0 / i) * legstage1_5.INTERVALS[3][0]);
+      legstage1_5.PREV[3][1] = legstage1_5.STATE[3][1] - ((1.0 / i) * legstage1_5.INTERVALS[3][1]);
+      legstage1_5.PREV[3][2] = legstage1_5.STATE[3][2] - ((1.0 / i) * legstage1_5.INTERVALS[3][2]);
+      Servos[0][0].write(legstage1_5.PREV[0][0]);
+      Servos[0][1].write(legstage1_5.PREV[0][1]);
+      Servos[0][2].write(legstage1_5.PREV[0][2]);
+      Servos[1][0].write(legstage1_5.PREV[1][0]);
+      Servos[1][1].write(legstage1_5.PREV[1][1]);
+      Servos[1][2].write(legstage1_5.PREV[1][2]);
+      Servos[2][0].write(legstage1_5.PREV[2][0]);
+      Servos[2][1].write(legstage1_5.PREV[2][1]);
+      Servos[2][2].write(legstage1_5.PREV[2][2]);
+      Servos[3][0].write(legstage1_5.PREV[3][0]);
+      Servos[3][1].write(legstage1_5.PREV[3][1]);
+      Servos[3][2].write(legstage1_5.PREV[3][2]);
+   
+   
+      delay(10);
+
+    }
+
+      for (int i = 0; i < 4; i++) {
+      legstage2.STATE[i][0] = Servos[i][0].read();
+      legstage2.STATE[i][1] = Servos[i][1].read();
+      legstage2.STATE[i][2] = Servos[i][2].read();
+    }
+
+    
+      legstage2.INTERVALS[1][0] = (legstage2.STATE[1][0] - 60);
+    legstage2.INTERVALS[1][1] = (legstage2.STATE[1][1] - 180);
+    legstage2.INTERVALS[1][2] = (legstage2.STATE[1][2] - 90);
+
+    
+
+     for (int i = SMOOTHING; i > 0; i--) {
+
+      legstage2.PREV[1][0] = legstage2.STATE[1][0] - ((1.0 / i) * legstage2.INTERVALS[1][0]);
+      legstage2.PREV[1][1] = legstage2.STATE[1][1] - ((1.0 / i) * legstage2.INTERVALS[1][1]);
+      legstage2.PREV[1][2] = legstage2.STATE[1][2] - ((1.0 / i) * legstage2.INTERVALS[1][2]);
+
+      Servos[1][0].write(legstage2.PREV[1][0]);
+      Servos[1][1].write(legstage2.PREV[1][1]);
+      Servos[1][2].write(legstage2.PREV[1][2]);
+
+   
+      delay(10);
+    }
+
+                for (int i = 0; i < 4; i++) {
+      legstage3.STATE[i][0] = Servos[i][0].read();
+      legstage3.STATE[i][1] = Servos[i][1].read();
+      legstage3.STATE[i][2] = Servos[i][2].read();
+    }
+
+      legstage3.INTERVALS[0][0] = (legstage3.STATE[0][0] - 50);
+    legstage3.INTERVALS[0][1] = (legstage3.STATE[0][1] - 128);
+    legstage3.INTERVALS[0][2] = (legstage3.STATE[0][2] - 134);
+        legstage3.INTERVALS[1][0] = (legstage3.STATE[1][0] - 39);
+    legstage3.INTERVALS[1][1] = (legstage3.STATE[1][1] - 128);
+    legstage3.INTERVALS[1][2] = (legstage3.STATE[1][2] - 134);
+    legstage3.INTERVALS[2][0] = (legstage3.STATE[2][0] - 90);
+    legstage3.INTERVALS[2][1] = (legstage3.STATE[2][1] - 128);
+    legstage3.INTERVALS[2][2] = (legstage3.STATE[2][2] - 134);
+    legstage3.INTERVALS[3][0] = (legstage3.STATE[3][0] - 70);
+    legstage3.INTERVALS[3][1] = (legstage3.STATE[3][1] - 128);
+    legstage3.INTERVALS[3][2] = (legstage3.STATE[3][2] - 134);
+
+    
+
+     for (int i = SMOOTHING; i > 0; i--) {
+      legstage3.PREV[0][0] = legstage3.STATE[0][0] - ((1.0 / i) * legstage3.INTERVALS[0][0]);
+      legstage3.PREV[0][1] = legstage3.STATE[0][1] - ((1.0 / i) * legstage3.INTERVALS[0][1]);
+      legstage3.PREV[0][2] = legstage3.STATE[0][2] - ((1.0 / i) * legstage3.INTERVALS[0][2]);
+      legstage3.PREV[1][0] = legstage3.STATE[1][0] - ((1.0 / i) * legstage3.INTERVALS[1][0]);
+      legstage3.PREV[1][1] = legstage3.STATE[1][1] - ((1.0 / i) * legstage3.INTERVALS[1][1]);
+      legstage3.PREV[1][2] = legstage3.STATE[1][2] - ((1.0 / i) * legstage3.INTERVALS[1][2]);
+      legstage3.PREV[2][0] = legstage3.STATE[2][0] - ((1.0 / i) * legstage3.INTERVALS[2][0]);
+      legstage3.PREV[2][1] = legstage3.STATE[2][1] - ((1.0 / i) * legstage3.INTERVALS[2][1]);
+      legstage3.PREV[2][2] = legstage3.STATE[2][2] - ((1.0 / i) * legstage3.INTERVALS[2][2]);
+            legstage3.PREV[3][0] = legstage3.STATE[3][0] - ((1.0 / i) * legstage3.INTERVALS[3][0]);
+      legstage3.PREV[3][1] = legstage3.STATE[3][1] - ((1.0 / i) * legstage3.INTERVALS[3][1]);
+      legstage3.PREV[3][2] = legstage3.STATE[3][2] - ((1.0 / i) * legstage3.INTERVALS[3][2]);
+      Servos[0][0].write(legstage3.PREV[0][0]);
+      Servos[0][1].write(legstage3.PREV[0][1]);
+      Servos[0][2].write(legstage3.PREV[0][2]);
+      Servos[1][0].write(legstage3.PREV[1][0]);
+      Servos[1][1].write(legstage3.PREV[1][1]);
+      Servos[1][2].write(legstage3.PREV[1][2]);
+      Servos[2][0].write(legstage3.PREV[2][0]);
+      Servos[2][1].write(legstage3.PREV[2][1]);
+      Servos[2][2].write(legstage3.PREV[2][2]);
+      Servos[3][0].write(legstage3.PREV[3][0]);
+      Servos[3][1].write(legstage3.PREV[3][1]);
+      Servos[3][2].write(legstage3.PREV[3][2]);
+   
+   
+      delay(10);
+
+    }
+
+for (int i = 0; i < 4; i++) {
+      legstage3_5.STATE[i][0] = Servos[i][0].read();
+      legstage3_5.STATE[i][1] = Servos[i][1].read();
+      legstage3_5.STATE[i][2] = Servos[i][2].read();
+    }
+
+    
+      legstage3_5.INTERVALS[2][0] = (legstage3_5.STATE[2][0] - 60);
+    legstage3_5.INTERVALS[2][1] = (legstage3_5.STATE[2][1] - 180);
+    legstage3_5.INTERVALS[2][2] = (legstage3_5.STATE[2][2] - 90);
+
+    
+
+     for (int i = SMOOTHING; i > 0; i--) {
+
+      legstage3_5.PREV[2][0] = legstage3_5.STATE[2][0] - ((1.0 / i) * legstage3_5.INTERVALS[2][0]);
+      legstage3_5.PREV[2][1] = legstage3_5.STATE[2][1] - ((1.0 / i) * legstage3_5.INTERVALS[2][1]);
+      legstage3_5.PREV[2][2] = legstage3_5.STATE[2][2] - ((1.0 / i) * legstage3_5.INTERVALS[2][2]);
+
+      Servos[2][0].write(legstage3_5.PREV[2][0]);
+      Servos[2][1].write(legstage3_5.PREV[2][1]);
+      Servos[2][2].write(legstage3_5.PREV[2][2]);
+
+   
+      delay(10);
+    }
+
+
+                    for (int i = 0; i < 4; i++) {
+      legstage4.STATE[i][0] = Servos[i][0].read();
+      legstage4.STATE[i][1] = Servos[i][1].read();
+      legstage4.STATE[i][2] = Servos[i][2].read();
+    }
+
+      legstage4.INTERVALS[0][0] = (legstage4.STATE[0][0] - 70);
+    legstage4.INTERVALS[0][1] = (legstage4.STATE[0][1] - 128);
+    legstage4.INTERVALS[0][2] = (legstage4.STATE[0][2] - 134);
+        legstage4.INTERVALS[1][0] = (legstage4.STATE[1][0] - 50);
+    legstage4.INTERVALS[1][1] = (legstage4.STATE[1][1] - 128);
+    legstage4.INTERVALS[1][2] = (legstage4.STATE[1][2] - 134);
+    legstage4.INTERVALS[2][0] = (legstage4.STATE[2][0] - 39);
+    legstage4.INTERVALS[2][1] = (legstage4.STATE[2][1] - 128);
+    legstage4.INTERVALS[2][2] = (legstage4.STATE[2][2] - 134);
+    legstage4.INTERVALS[3][0] = (legstage4.STATE[3][0] - 90);
+    legstage4.INTERVALS[3][1] = (legstage4.STATE[3][1] - 128);
+    legstage4.INTERVALS[3][2] = (legstage4.STATE[3][2] - 134);
+
+    
+
+     for (int i = SMOOTHING; i > 0; i--) {
+      legstage4.PREV[0][0] = legstage4.STATE[0][0] - ((1.0 / i) * legstage4.INTERVALS[0][0]);
+      legstage4.PREV[0][1] = legstage4.STATE[0][1] - ((1.0 / i) * legstage4.INTERVALS[0][1]);
+      legstage4.PREV[0][2] = legstage4.STATE[0][2] - ((1.0 / i) * legstage4.INTERVALS[0][2]);
+      legstage4.PREV[1][0] = legstage4.STATE[1][0] - ((1.0 / i) * legstage4.INTERVALS[1][0]);
+      legstage4.PREV[1][1] = legstage4.STATE[1][1] - ((1.0 / i) * legstage4.INTERVALS[1][1]);
+      legstage4.PREV[1][2] = legstage4.STATE[1][2] - ((1.0 / i) * legstage4.INTERVALS[1][2]);
+      legstage4.PREV[2][0] = legstage4.STATE[2][0] - ((1.0 / i) * legstage4.INTERVALS[2][0]);
+      legstage4.PREV[2][1] = legstage4.STATE[2][1] - ((1.0 / i) * legstage4.INTERVALS[2][1]);
+      legstage4.PREV[2][2] = legstage4.STATE[2][2] - ((1.0 / i) * legstage4.INTERVALS[2][2]);
+            legstage4.PREV[3][0] = legstage4.STATE[3][0] - ((1.0 / i) * legstage4.INTERVALS[3][0]);
+      legstage4.PREV[3][1] = legstage4.STATE[3][1] - ((1.0 / i) * legstage4.INTERVALS[3][1]);
+      legstage4.PREV[3][2] = legstage4.STATE[3][2] - ((1.0 / i) * legstage4.INTERVALS[3][2]);
+      Servos[0][0].write(legstage4.PREV[0][0]);
+      Servos[0][1].write(legstage4.PREV[0][1]);
+      Servos[0][2].write(legstage4.PREV[0][2]);
+      Servos[1][0].write(legstage4.PREV[1][0]);
+      Servos[1][1].write(legstage4.PREV[1][1]);
+      Servos[1][2].write(legstage4.PREV[1][2]);
+      Servos[2][0].write(legstage4.PREV[2][0]);
+      Servos[2][1].write(legstage4.PREV[2][1]);
+      Servos[2][2].write(legstage4.PREV[2][2]);
+      Servos[3][0].write(legstage4.PREV[3][0]);
+      Servos[3][1].write(legstage4.PREV[3][1]);
+      Servos[3][2].write(legstage4.PREV[3][2]);
+   
+   
+      delay(10);
+
+    }
+
+for (int i = 0; i < 4; i++) {
+      legstage4_5.STATE[i][0] = Servos[i][0].read();
+      legstage4_5.STATE[i][1] = Servos[i][1].read();
+      legstage4_5.STATE[i][2] = Servos[i][2].read();
+    }
+
+    
+      legstage4_5.INTERVALS[3][0] = (legstage4_5.STATE[3][0] - 60);
+    legstage4_5.INTERVALS[3][1] = (legstage4_5.STATE[3][1] - 180);
+    legstage4_5.INTERVALS[3][2] = (legstage4_5.STATE[3][2] - 90);
+
+    
+
+     for (int i = SMOOTHING; i > 0; i--) {
+
+      legstage4_5.PREV[3][0] = legstage4_5.STATE[3][0] - ((1.0 / i) * legstage4_5.INTERVALS[3][0]);
+      legstage4_5.PREV[3][1] = legstage4_5.STATE[3][1] - ((1.0 / i) * legstage4_5.INTERVALS[3][1]);
+      legstage4_5.PREV[3][2] = legstage4_5.STATE[3][2] - ((1.0 / i) * legstage4_5.INTERVALS[3][2]);
+
+      Servos[3][0].write(legstage4_5.PREV[3][0]);
+      Servos[3][1].write(legstage4_5.PREV[3][1]);
+      Servos[3][2].write(legstage4_5.PREV[3][2]);
+
+   
+      delay(10);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+  }
+
+}
+void detachServos() {
+  Servos[0][0].detach();
+  Servos[0][1].detach();
+  Servos[0][2].detach();
+  Servos[1][0].detach();
+  Servos[1][1].detach();
+  Servos[1][2].detach();
+  Servos[2][0].detach();
+  Servos[2][1].detach();
+  Servos[2][2].detach();
+  Servos[3][0].detach();
+  Servos[3][1].detach();
+  Servos[3][2].detach();
+}
+
+void attachServos() {
+  Servos[0][0].attach(10);
+  Servos[0][1].attach(9);
+  Servos[0][2].attach(8);
+  Servos[1][0].attach(4);
+  Servos[1][1].attach(3);
+  Servos[1][2].attach(2);
+  Servos[2][0].attach(7);
+  Servos[2][1].attach(6);
+  Servos[2][2].attach(5);
+  Servos[3][0].attach(13);
+  Servos[3][1].attach(12);
+  Servos[3][2].attach(11);
+}

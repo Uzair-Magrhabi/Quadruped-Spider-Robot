@@ -1,0 +1,94 @@
+
+#include <Servo.h>
+#include <math.h>
+
+Servo COXA_SERVO;
+Servo TIBIA_SERVO;
+Servo FEMUR_SERVO;
+
+float x_prev, x, y_prev, y, z_prev, z, H, S, TIBIA_LENGTH, FEMUR_LENGTH, FEMUR_ANGLE_RADIANS, COXA_ANGLE_RADIANS, TIBIA_ANGLE_RADIANS, m_rad, m_deg, l, x_offset, y_offset, z_offset; 
+float FEMUR_ANGLE_DEGREES, COXA_ANGLE_DEGREES, TIBIA_ANGLE_DEGREES;
+int COXA_SERVO_ANGLE, TIBIA_SERVO_ANGLE, FEMUR_SERVO_ANGLE, COXA_SERVO_ANGLE_PREVIOUS, TIBIA_SERVO_ANGLE_PREVIOUS, FEMUR_SERVO_ANGLE_PREVIOUS, DISTANCE_COXA, DISTANCE_FEMUR, DISTANCE_TIBIA, DISTANCE_COXA_INTERVAL, DISTANCE_FEMUR_INTERVAL, DISTANCE_TIBIA_INTERVAL;
+#define TIBIA_LENGTH 97.451
+ 
+#define FEMUR_LENGTH 45.5
+
+void smooth_Moves(float x, float y, float z, float x_prev, float y_prev, float z_prev);
+
+void setup() {
+  Serial.begin(115200);
+  COXA_SERVO.attach(9);
+  TIBIA_SERVO.attach(8);
+  FEMUR_SERVO.attach(10);
+
+
+
+
+  
+
+x_offset = -20;
+y_offset = 10;
+z_offset = 0;
+
+
+x_prev = x_offset;
+y_prev = y_offset + 50;
+z_prev = z_offset - 50;
+
+
+
+  COXA_ANGLE_DEGREES = (atan(x_prev/y_prev)* 57.2957);
+  
+
+
+ H = sqrt((x_prev*x_prev)+(y_prev*y_prev));
+
+ S = sqrt((H*H)+(z_prev*z_prev));
+
+ TIBIA_ANGLE_RADIANS = acos(((TIBIA_LENGTH*TIBIA_LENGTH)+(FEMUR_LENGTH*FEMUR_LENGTH)-(S*S))/(2*TIBIA_LENGTH*FEMUR_LENGTH)); 
+
+ TIBIA_ANGLE_DEGREES = TIBIA_ANGLE_RADIANS * 57.2957;
+
+m_rad = acos(((FEMUR_LENGTH*FEMUR_LENGTH)+(S*S)-(TIBIA_LENGTH*TIBIA_LENGTH))/(2*FEMUR_LENGTH*S));
+
+m_deg = m_rad * 57.2957;
+
+
+
+
+l = asin(H/S) * 57.2957;
+
+
+ 
+FEMUR_ANGLE_DEGREES = 180 - (l+m_deg);
+
+COXA_SERVO_ANGLE_PREVIOUS = 90 - COXA_ANGLE_DEGREES;
+
+FEMUR_SERVO_ANGLE_PREVIOUS = 184 - FEMUR_ANGLE_DEGREES;
+
+TIBIA_SERVO_ANGLE_PREVIOUS =  180 - TIBIA_ANGLE_DEGREES;
+
+
+
+
+
+
+COXA_SERVO.write(COXA_SERVO_ANGLE_PREVIOUS);
+FEMUR_SERVO.write(FEMUR_SERVO_ANGLE_PREVIOUS);
+TIBIA_SERVO.write(TIBIA_SERVO_ANGLE_PREVIOUS);
+
+
+Serial.println(COXA_SERVO_ANGLE_PREVIOUS);
+Serial.println(TIBIA_SERVO_ANGLE_PREVIOUS);
+Serial.println(FEMUR_SERVO_ANGLE_PREVIOUS);
+
+
+
+}
+
+void loop() {
+
+
+
+
+}
